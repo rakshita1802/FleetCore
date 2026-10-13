@@ -67,6 +67,17 @@ if (process.env.NODE_ENV !== 'test') {
   app.use(morgan('dev'));
 }
 
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    service: 'FleetCore API Server',
+    status: 'ONLINE',
+    frontendUrl: 'http://localhost:5174',
+    message: 'FleetCore API Gateway is running. Open the Web Dashboard at http://localhost:5174 or http://localhost:5175'
+  });
+});
+
 // Routes
 app.use('/api/health', healthRoutes);
 app.use('/api/auth', authRoutes);

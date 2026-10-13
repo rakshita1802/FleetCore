@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import api from '../services/api';
+import { disconnectSocket } from '../services/socket';
 
 const AuthContext = createContext();
 
@@ -19,6 +20,7 @@ export const AuthProvider = ({ children }) => {
         } catch (err) {
           localStorage.removeItem('accessToken');
           delete api.defaults.headers.common['Authorization'];
+          disconnectSocket();
           if (isMounted) setUser(null);
         }
       }
@@ -41,6 +43,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = (data) => {
+    disconnectSocket();
     localStorage.setItem('accessToken', data.accessToken);
     api.defaults.headers.common['Authorization'] = `Bearer ${data.accessToken}`;
     setUser(data.user);
@@ -52,6 +55,7 @@ export const AuthProvider = ({ children }) => {
     } catch (e) {
       // ignore
     } finally {
+      disconnectSocket();
       localStorage.removeItem('accessToken');
       delete api.defaults.headers.common['Authorization'];
       setUser(null);

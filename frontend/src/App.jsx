@@ -113,44 +113,60 @@ const Layout = ({ children }) => {
 
           {/* Navigation Links */}
           <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
-            <div>
-              <div className="text-[10px] font-mono uppercase tracking-wider text-slate-400 px-3 mb-2 font-semibold">
-                Fleet Operations
-              </div>
-              <div className="space-y-1">
-                {navItem('/', LayoutDashboard, 'Live Dashboard', 'LIVE')}
-                {navItem('/geofences', ShieldAlert, 'Geofence Zones', 'GEO')}
-                {navItem('/vehicles', Truck, 'Vehicles')}
-                {navItem('/drivers', UserCheck, 'Drivers')}
-                {navItem('/assignments', Link2, 'Assignments')}
-                {navItem('/trips', Navigation, 'Trips & Routes')}
-                {navItem('/telemetry', Activity, 'Telemetry Hub')}
-                {navItem('/maintenance', Wrench, 'Maintenance')}
-              </div>
-            </div>
-
-            <div>
-              <div className="text-[10px] font-mono uppercase tracking-wider text-slate-400 px-3 mb-2 font-semibold">
-                Intelligence & Reports
-              </div>
-              <div className="space-y-1">
-                {navItem('/analytics', BarChart3, 'Fleet Analytics')}
-                {navItem('/reports', FileText, 'Export Reports')}
-              </div>
-            </div>
-
-            {(user?.role === 'ADMIN' || user?.role === 'FLEET_MANAGER') && (
+            {user?.role === 'DRIVER' ? (
               <div>
-                <div className="text-[10px] font-mono uppercase tracking-wider text-slate-400 px-3 mb-2 font-semibold">
-                  Administration
+                <div className="text-[10px] font-mono uppercase tracking-wider text-slate-400 px-3 mb-2 font-semibold flex items-center justify-between">
+                  <span>Driver Portal</span>
+                  <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-cyan-950 text-cyan-400 border border-cyan-800/60 uppercase">ON CAB</span>
                 </div>
                 <div className="space-y-1">
-                  {navItem('/admin', ShieldAlert, 'Admin Control')}
-                  {user?.role === 'ADMIN' && navItem('/admin/users', Users, 'User Directory')}
-                  {navItem('/admin/audit', ScrollText, 'Audit Ledger')}
-                  {user?.role === 'ADMIN' && navItem('/admin/system', Cpu, 'System Health')}
+                  {navItem('/', Truck, 'My Vehicle & Cockpit', 'CAB')}
+                  {navItem('/trips', Navigation, 'My Assigned Trips', 'ACTIVE')}
+                  {navItem('/telemetry', Activity, 'Vehicle Diagnostics')}
                 </div>
               </div>
+            ) : (
+              <>
+                <div>
+                  <div className="text-[10px] font-mono uppercase tracking-wider text-slate-400 px-3 mb-2 font-semibold">
+                    Fleet Operations
+                  </div>
+                  <div className="space-y-1">
+                    {navItem('/', LayoutDashboard, 'Live Dashboard', 'LIVE')}
+                    {navItem('/geofences', ShieldAlert, 'Geofence Zones', 'GEO')}
+                    {navItem('/vehicles', Truck, 'Vehicles')}
+                    {navItem('/drivers', UserCheck, 'Drivers')}
+                    {navItem('/assignments', Link2, 'Assignments')}
+                    {navItem('/trips', Navigation, 'Trips & Routes')}
+                    {navItem('/telemetry', Activity, 'Telemetry Hub')}
+                    {navItem('/maintenance', Wrench, 'Maintenance')}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="text-[10px] font-mono uppercase tracking-wider text-slate-400 px-3 mb-2 font-semibold">
+                    Intelligence & Reports
+                  </div>
+                  <div className="space-y-1">
+                    {navItem('/analytics', BarChart3, 'Fleet Analytics')}
+                    {navItem('/reports', FileText, 'Export Reports')}
+                  </div>
+                </div>
+
+                {(user?.role === 'ADMIN' || user?.role === 'FLEET_MANAGER') && (
+                  <div>
+                    <div className="text-[10px] font-mono uppercase tracking-wider text-slate-400 px-3 mb-2 font-semibold">
+                      Administration
+                    </div>
+                    <div className="space-y-1">
+                      {navItem('/admin', ShieldAlert, 'Admin Control')}
+                      {user?.role === 'ADMIN' && navItem('/admin/users', Users, 'User Directory')}
+                      {navItem('/admin/audit', ScrollText, 'Audit Ledger')}
+                      {user?.role === 'ADMIN' && navItem('/admin/system', Cpu, 'System Health')}
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </nav>
 
@@ -194,7 +210,10 @@ const Layout = ({ children }) => {
               <span className="text-slate-500">FleetCore</span>
               <ChevronRight className="w-3.5 h-3.5 text-slate-600" />
               <span className="text-cyan-400 font-mono">
-                {location.pathname === '/' ? 'LIVE COMMAND CENTER' : location.pathname.replace('/', '').toUpperCase()}
+                {user?.role === 'DRIVER'
+                  ? (location.pathname === '/' ? 'DRIVER CAB & VEHICLE HUD' : location.pathname.replace('/', '').toUpperCase())
+                  : (location.pathname === '/' ? 'LIVE COMMAND CENTER' : location.pathname.replace('/', '').toUpperCase())
+                }
               </span>
             </div>
           </div>
@@ -212,7 +231,7 @@ const Layout = ({ children }) => {
             {/* Quick Status Tag */}
             <div className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-lg bg-slate-800/60 border border-slate-700/60 text-[11px] font-mono text-slate-300">
               <Signal className="w-3.5 h-3.5 text-cyan-400" />
-              <span>COIMBATORE HUB</span>
+              <span>{user?.role === 'DRIVER' ? 'ACTIVE DRIVER' : 'COIMBATORE HUB'}</span>
             </div>
           </div>
         </header>
@@ -239,6 +258,9 @@ const Placeholder = ({ title }) => (
 );
 
 function AppRoutes() {
+  const adminManagerViewer = ['ADMIN', 'FLEET_MANAGER', 'VIEWER'];
+  const adminManager = ['ADMIN', 'FLEET_MANAGER'];
+
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
@@ -249,28 +271,28 @@ function AppRoutes() {
             <Routes>
               <Route path="/" element={<FleetDashboard />} />
               <Route path="/dashboard" element={<FleetDashboard />} />
-              <Route path="/geofences" element={<GeofenceManagement />} />
-              <Route path="/vehicles" element={<Vehicles />} />
-              <Route path="/vehicles/new" element={<Placeholder title="Add Vehicle Form" />} />
-              <Route path="/vehicles/:id" element={<Placeholder title="Vehicle Details" />} />
-              <Route path="/vehicles/:id/edit" element={<Placeholder title="Edit Vehicle Form" />} />
-              <Route path="/drivers" element={<Drivers />} />
-              <Route path="/drivers/new" element={<Placeholder title="Add Driver Form" />} />
-              <Route path="/drivers/:id" element={<Placeholder title="Driver Details" />} />
-              <Route path="/drivers/:id/edit" element={<Placeholder title="Edit Driver Form" />} />
-              <Route path="/assignments" element={<Assignments />} />
+              <Route path="/geofences" element={<ProtectedRoute allowedRoles={adminManagerViewer}><GeofenceManagement /></ProtectedRoute>} />
+              <Route path="/vehicles" element={<ProtectedRoute allowedRoles={adminManagerViewer}><Vehicles /></ProtectedRoute>} />
+              <Route path="/vehicles/new" element={<ProtectedRoute allowedRoles={adminManager}><Placeholder title="Add Vehicle Form" /></ProtectedRoute>} />
+              <Route path="/vehicles/:id" element={<ProtectedRoute allowedRoles={adminManagerViewer}><Placeholder title="Vehicle Details" /></ProtectedRoute>} />
+              <Route path="/vehicles/:id/edit" element={<ProtectedRoute allowedRoles={adminManager}><Placeholder title="Edit Vehicle Form" /></ProtectedRoute>} />
+              <Route path="/drivers" element={<ProtectedRoute allowedRoles={adminManagerViewer}><Drivers /></ProtectedRoute>} />
+              <Route path="/drivers/new" element={<ProtectedRoute allowedRoles={adminManager}><Placeholder title="Add Driver Form" /></ProtectedRoute>} />
+              <Route path="/drivers/:id" element={<ProtectedRoute allowedRoles={adminManagerViewer}><Placeholder title="Driver Details" /></ProtectedRoute>} />
+              <Route path="/drivers/:id/edit" element={<ProtectedRoute allowedRoles={adminManager}><Placeholder title="Edit Driver Form" /></ProtectedRoute>} />
+              <Route path="/assignments" element={<ProtectedRoute allowedRoles={adminManagerViewer}><Assignments /></ProtectedRoute>} />
               <Route path="/trips" element={<Trips />} />
-              <Route path="/trips/new" element={<CreateTrip />} />
+              <Route path="/trips/new" element={<ProtectedRoute allowedRoles={adminManager}><CreateTrip /></ProtectedRoute>} />
               <Route path="/trips/:id" element={<TripDetails />} />
               <Route path="/telemetry" element={<Telemetry />} />
-              <Route path="/maintenance" element={<Maintenance />} />
-              <Route path="/analytics" element={<AnalyticsDashboard />} />
-              <Route path="/alerts" element={<Maintenance />} />
-              <Route path="/reports" element={<Reports />} />
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/admin/users" element={<AdminUsers />} />
-              <Route path="/admin/audit" element={<AuditLogs />} />
-              <Route path="/admin/system" element={<SystemHealth />} />
+              <Route path="/maintenance" element={<ProtectedRoute allowedRoles={adminManagerViewer}><Maintenance /></ProtectedRoute>} />
+              <Route path="/analytics" element={<ProtectedRoute allowedRoles={adminManagerViewer}><AnalyticsDashboard /></ProtectedRoute>} />
+              <Route path="/alerts" element={<ProtectedRoute allowedRoles={adminManagerViewer}><Maintenance /></ProtectedRoute>} />
+              <Route path="/reports" element={<ProtectedRoute allowedRoles={adminManagerViewer}><Reports /></ProtectedRoute>} />
+              <Route path="/admin" element={<ProtectedRoute allowedRoles={adminManager}><AdminDashboard /></ProtectedRoute>} />
+              <Route path="/admin/users" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminUsers /></ProtectedRoute>} />
+              <Route path="/admin/audit" element={<ProtectedRoute allowedRoles={adminManager}><AuditLogs /></ProtectedRoute>} />
+              <Route path="/admin/system" element={<ProtectedRoute allowedRoles={['ADMIN']}><SystemHealth /></ProtectedRoute>} />
               <Route path="*" element={<Placeholder title="404 - Module Not Found" />} />
             </Routes>
           </Layout>

@@ -1,13 +1,23 @@
 import { io } from 'socket.io-client';
 
 let socket = null;
+let currentToken = null;
 
 export const connectSocket = (token) => {
-  if (socket) return socket;
+  const authToken = token || localStorage.getItem('accessToken');
+  
+  if (socket && currentToken === authToken) {
+    return socket;
+  }
 
+  if (socket) {
+    socket.disconnect();
+    socket = null;
+  }
+
+  currentToken = authToken;
   const rawUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
   const serverUrl = rawUrl.replace(/\/api\/?$/, '');
-  const authToken = token || localStorage.getItem('accessToken');
 
   socket = io(serverUrl, {
     auth: { token: authToken },
@@ -36,4 +46,5 @@ export const disconnectSocket = () => {
     socket.disconnect();
     socket = null;
   }
+  currentToken = null;
 };
