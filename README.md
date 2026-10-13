@@ -24,31 +24,31 @@ Built on an event-driven microservices architecture, FleetCore ingests, enriches
 FleetCore is structured as a decoupled, multi-tier distributed platform designed for horizontal scalability, zero data loss, and real-time WebSocket streaming:
 
 ```mermaid
-graph TB
-    subgraph IoT & Simulation Layer
-        SIM[Autonomous GPS Route Simulator<br/>Coimbatore Corridors]
-        OBD[IoT Sensors / CAN Bus / OBD-II Diagnostics]
+flowchart TB
+    subgraph S1 ["IoT and Simulation Layer"]
+        SIM["Autonomous GPS Route Simulator<br/>(Coimbatore Corridors)"]
+        OBD["IoT Sensors / CAN Bus / OBD-II Diagnostics"]
     end
 
-    subgraph Ingestion & Gateway Layer
-        API[Express.js REST Gateway<br/>JWT Auth & RBAC Middleware]
-        WS[Socket.IO Event Server<br/>Tenant-Isolated Rooms]
+    subgraph S2 ["Ingestion and Gateway Layer"]
+        API["Express.js REST Gateway<br/>(JWT Auth and RBAC Middleware)"]
+        WS["Socket.IO Event Server<br/>(Tenant-Isolated Rooms)"]
     end
 
-    subgraph Real-Time State & Caching
-        REDIS[(Redis 7.0<br/>Atomic State Cache & Pub/Sub)]
-        QUEUE[BullMQ Background Queue]
+    subgraph S3 ["Real-Time State and Caching"]
+        REDIS[("Redis 7.0<br/>Atomic State Cache and Pub/Sub")]
+        QUEUE["BullMQ Background Queue"]
     end
 
-    subgraph Data Persistence
-        PRISMA[Prisma ORM Client]
-        MYSQL[(MySQL 8.0 Database<br/>ACID Relational Storage)]
+    subgraph S4 ["Data Persistence Layer"]
+        PRISMA["Prisma ORM Client"]
+        MYSQL[("MySQL 8.0 Database<br/>ACID Relational Storage")]
     end
 
-    subgraph Presentation Layer
-        REACT[React 18 Single Page App<br/>Obsidian Glassmorphic UI]
-        LEAFLET[Leaflet Dark Radar Map<br/>Rotating Compass Vectors]
-        DASH[Real-Time Telemetry HUD & Analytics]
+    subgraph S5 ["Presentation Layer"]
+        REACT["React 18 Single Page App<br/>(Obsidian Glassmorphic UI)"]
+        LEAFLET["Leaflet Dark Radar Map<br/>(Rotating Compass Vectors)"]
+        DASH["Real-Time Telemetry HUD and Analytics"]
     end
 
     SIM -->|Telemetry Packets| API
@@ -73,31 +73,31 @@ Every telemetry packet moves through an optimized validation, enrichment, cachin
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Sim as Vehicle / GPS Simulator
+    actor Sim as Vehicle Simulator
     participant API as Express API Server
     participant Redis as Redis Cache
     participant GF as Geofence Engine
     participant DB as MySQL Database
     participant Socket as Socket.IO Hub
-    participant Client as Dispatcher Dashboard
+    actor Client as Dispatcher Dashboard
 
-    Sim->>API: POST /api/telemetry (lat, lng, speed, heading, fuel)
-    API->>API: Authenticate & Validate Packet (Zod Schema)
+    Sim->>API: POST /api/telemetry (GPS, Speed, Heading)
+    API->>API: Authenticate and Validate Packet
     API->>Redis: Atomic Update (updateStateIfNewer)
     
     par Real-Time Broadcast
-        API->>Socket: Emit fleet:vehicle:update to company:{id}
-        Socket->>Client: Instant UI Update (Marker rotates & moves)
+        API->>Socket: Emit fleet:vehicle:update
+        Socket->>Client: Instant UI Update (Marker rotates and moves)
     and Geofence Evaluation
         API->>GF: Ray-Casting Point-in-Polygon Check
         opt Perimeter Breach Detected
-            GF->>DB: Save GeofenceBreach & Alert record
+            GF->>DB: Save GeofenceBreach and Alert
             GF->>Socket: Emit geofence:breach alert
-            Socket->>Client: Display Emergency Audio-Visual Toast
+            Socket->>Client: Display Warning Notification
         end
     and Periodic Persistence
         opt Every 5th Tick
-            API->>DB: Insert Telemetry historical record
+            API->>DB: Insert Telemetry Record
         end
     end
 ```
@@ -110,28 +110,28 @@ The geofencing subsystem enforces physical boundaries using computational geomet
 
 ```mermaid
 flowchart TD
-    A[Vehicle GPS Telemetry Received] --> B{Active Geofences Configured?}
-    B -- No --> C[Skip Geofence Evaluation]
-    B -- Yes --> D[Iterate Company Geofences]
-    D --> E{Perimeter Type}
+    A["Vehicle GPS Telemetry Received"] --> B{"Active Geofences Configured?"}
+    B -->|No| C["Skip Geofence Evaluation"]
+    B -->|Yes| D["Iterate Company Geofences"]
+    D --> E{"Perimeter Type"}
     
-    E -- Polygon --> F[Ray-Casting Algorithm<br/>Crossings Counter]
-    E -- Circle --> G[Haversine Distance Formula<br/>Distance <= Radius]
+    E -->|Polygon| F["Ray-Casting Algorithm<br/>(Crossings Counter)"]
+    E -->|Circle| G["Haversine Distance Formula<br/>(Distance vs Radius)"]
     
-    F --> H{Rule Enforcement}
+    F --> H{"Rule Enforcement"}
     G --> H
     
-    H -- NO_ENTRY & Inside --> I[Trigger Intrusion Breach]
-    H -- NO_EXIT & Outside --> J[Trigger Boundary Escape Breach]
-    H -- SPEED_LIMIT & Inside & Speed > Limit --> K[Trigger Zone Speed Violation]
-    H -- Normal Operation --> L[Mark In Compliance]
+    H -->|NO ENTRY and Inside| I["Trigger Intrusion Breach"]
+    H -->|NO EXIT and Outside| J["Trigger Boundary Escape Breach"]
+    H -->|SPEED LIMIT and Speed Exceeded| K["Trigger Zone Speed Violation"]
+    H -->|Normal Operation| L["Mark In Compliance"]
     
-    I --> M[Check Cooldown Timer]
+    I --> M{"Check Cooldown Timer"}
     J --> M
     K --> M
     
-    M -- Cooldown Active --> N[Suppress Alert Spam]
-    M -- Cooldown Expired --> O[Record Breach in DB + Dispatch Socket.IO Alert]
+    M -->|Cooldown Active| N["Suppress Alert Spam"]
+    M -->|Cooldown Expired| O["Record Breach in DB and Dispatch Alert"]
 ```
 
 ---
@@ -142,34 +142,34 @@ FleetCore utilizes a structured relational data model in MySQL managed via Prism
 
 ```mermaid
 erDiagram
-    Company ||--o{ User : employs
-    Company ||--o{ Vehicle : owns
-    Company ||--o{ Driver : contracts
-    Company ||--o{ VehicleAssignment : allocates
-    Company ||--o{ Trip : operates
-    Company ||--o{ Geofence : defines
-    Company ||--o{ GeofenceBreach : tracks
-    Company ||--o{ MaintenanceSchedule : configures
-    Company ||--o{ Alert : monitors
-    Company ||--o{ AuditLog : records
+    COMPANY ||--o{ USER : employs
+    COMPANY ||--o{ VEHICLE : owns
+    COMPANY ||--o{ DRIVER : contracts
+    COMPANY ||--o{ VEHICLE_ASSIGNMENT : allocates
+    COMPANY ||--o{ TRIP : operates
+    COMPANY ||--o{ GEOFENCE : defines
+    COMPANY ||--o{ GEOFENCE_BREACH : tracks
+    COMPANY ||--o{ MAINTENANCE_SCHEDULE : configures
+    COMPANY ||--o{ ALERT : monitors
+    COMPANY ||--o{ AUDIT_LOG : records
 
-    Vehicle ||--o{ VehicleAssignment : assigned
-    Vehicle ||--o{ Trip : fulfills
-    Vehicle ||--o{ Telemetry : transmits
-    Vehicle ||--o{ GeofenceBreach : triggers
-    Vehicle ||--o{ MaintenanceSchedule : requires
-    Vehicle ||--o{ MaintenanceRecord : undergoes
-    Vehicle ||--o{ Alert : raises
+    VEHICLE ||--o{ VEHICLE_ASSIGNMENT : assigned
+    VEHICLE ||--o{ TRIP : fulfills
+    VEHICLE ||--o{ TELEMETRY : transmits
+    VEHICLE ||--o{ GEOFENCE_BREACH : triggers
+    VEHICLE ||--o{ MAINTENANCE_SCHEDULE : requires
+    VEHICLE ||--o{ MAINTENANCE_RECORD : undergoes
+    VEHICLE ||--o{ ALERT : raises
 
-    Driver ||--o{ VehicleAssignment : operates
-    Driver ||--o{ Trip : drives
+    DRIVER ||--o{ VEHICLE_ASSIGNMENT : operates
+    DRIVER ||--o{ TRIP : drives
 
-    Geofence ||--o{ GeofenceBreach : registers
-    MaintenanceSchedule ||--o{ MaintenanceRecord : generates
-    MaintenanceSchedule ||--o{ Alert : triggers
+    GEOFENCE ||--o{ GEOFENCE_BREACH : registers
+    MAINTENANCE_SCHEDULE ||--o{ MAINTENANCE_RECORD : generates
+    MAINTENANCE_SCHEDULE ||--o{ ALERT : triggers
 
-    User ||--o{ RefreshSession : owns
-    User ||--o{ AuditLog : performs
+    USER ||--o{ REFRESH_SESSION : owns
+    USER ||--o{ AUDIT_LOG : performs
 ```
 
 ---
