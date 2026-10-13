@@ -801,6 +801,7 @@ async function main() {
   try {
     const redisUrl = process.env.REDIS_URL || 'redis://localhost:6380';
     const redis = new Redis(redisUrl, { lazyConnect: true, maxRetriesPerRequest: 1 });
+    redis.on('error', () => {});
     await redis.connect();
 
     console.log('   ⚡ Populating Redis Live Fleet Cache...');
@@ -840,4 +841,5 @@ main()
   })
   .finally(async () => {
     await prisma.$disconnect();
+    process.exit(0);
   });
