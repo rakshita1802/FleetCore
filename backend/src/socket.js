@@ -30,7 +30,9 @@ const initSocket = (server) => {
           allowedOrigins.includes(origin) ||
           allowedOrigins.includes('*') ||
           /^https?:\/\/localhost(:\d+)?$/.test(origin) ||
-          /^https?:\/\/127\.0\.0\.1(:\d+)?$/.test(origin)
+          /^https?:\/\/127\.0\.0\.1(:\d+)?$/.test(origin) ||
+          /\.vercel\.app$/i.test(origin) ||
+          /\.onrender\.com$/i.test(origin)
         ) {
           callback(null, true);
         } else {

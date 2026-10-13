@@ -2,10 +2,11 @@ const authService = require('../services/authService');
 const { registerSchema, loginSchema } = require('../validators/authValidators');
 
 const setRefreshCookie = (res, token) => {
+  const isProd = process.env.NODE_ENV === 'production';
   res.cookie('refreshToken', token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    secure: isProd,
+    sameSite: isProd ? 'none' : 'lax',
     path: '/api/auth/refresh',
     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
   });
@@ -77,7 +78,12 @@ const refresh = async (req, res, next) => {
       data: { accessToken }
     });
   } catch (err) {
-    res.clearCookie('refreshToken', { path: '/api/auth/refresh' });
+    const isProd = process.env.NODE_ENV === 'production';
+    res.clearCookie('refreshToken', { 
+      path: '/api/auth/refresh',
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'lax'
+    });
     return res.status(401).json({ success: false, message: "Invalid or expired session" });
   }
 };
@@ -86,7 +92,12 @@ const logout = async (req, res, next) => {
   try {
     const token = req.cookies?.refreshToken;
     await authService.logoutSession(token);
-    res.clearCookie('refreshToken', { path: '/api/auth/refresh' });
+    const isProd = process.env.NODE_ENV === 'production';
+    res.clearCookie('refreshToken', { 
+      path: '/api/auth/refresh',
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'lax'
+    });
     res.status(200).json({ success: true, message: "Logged out successfully" });
   } catch (err) {
     next(err);
