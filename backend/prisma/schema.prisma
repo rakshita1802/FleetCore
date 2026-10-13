@@ -1,0 +1,473 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Company {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  users     User[]
+  vehicles  Vehicle[]
+  drivers   Driver[]
+  assignments VehicleAssignment[]
+  trips       Trip[]
+  telemetry   Telemetry[]
+  maintenanceSchedules MaintenanceSchedule[]
+  maintenanceRecords   MaintenanceRecord[]
+  alerts               Alert[]
+  auditLogs            AuditLog[]
+  geofences            Geofence[]
+  geofenceBreaches     GeofenceBreach[]
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model User {
+  id           String           @id @default(uuid())
+  companyId    String
+  company      Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name         String
+  email        String           @unique
+  passwordHash String
+  role         Role             @default(VIEWER)
+  status       UserStatus       @default(ACTIVE)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  refreshSessions RefreshSession[]
+  auditLogs    AuditLog[]
+
+  @@index([companyId])
+  @@index([status])
+  @@index([role])
+}
+
+model RefreshSession {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  revokedAt DateTime?
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  companyId  String
+  company    Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action     String
+  entityType String
+  entityId   String?
+  metadata   Json?
+  ipAddress  String?
+  userAgent  String?  @db.Text
+  createdAt  DateTime @default(now())
+
+  @@index([companyId])
+  @@index([userId])
+  @@index([action])
+  @@index([entityType])
+  @@index([createdAt])
+}
+
+enum Role {
+  ADMIN
+  FLEET_MANAGER
+  DRIVER
+  VIEWER
+}
+
+enum VehicleType {
+  CAR
+  VAN
+  TRUCK
+  BUS
+  MOTORCYCLE
+  OTHER
+}
+
+enum FuelType {
+  PETROL
+  DIESEL
+  CNG
+  ELECTRIC
+  HYBRID
+  OTHER
+}
+
+enum VehicleStatus {
+  ACTIVE
+  INACTIVE
+  MAINTENANCE
+  RETIRED
+}
+
+model Vehicle {
+  id                 String              @id @default(uuid())
+  companyId          String
+  company            Company             @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  registrationNumber String
+  vin                String?
+  make               String
+  model              String
+  year               Int
+  vehicleType        VehicleType
+  fuelType           FuelType
+  status             VehicleStatus       @default(ACTIVE)
+  odometer           Float               @default(0)
+  currentLatitude    Float?
+  currentLongitude   Float?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  assignments        VehicleAssignment[]
+  trips              Trip[]
+  telemetry          Telemetry[]
+  maintenanceSchedules MaintenanceSchedule[]
+  maintenanceRecords   MaintenanceRecord[]
+  alerts               Alert[]
+  geofenceBreaches     GeofenceBreach[]
+
+  @@unique([companyId, registrationNumber])
+  @@unique([companyId, vin])
+  @@index([companyId])
+  @@index([status])
+  @@index([vehicleType])
+  @@index([fuelType])
+}
+
+enum DriverStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+model Driver {
+  id             String              @id @default(uuid())
+  companyId      String
+  company        Company             @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  userId         String?
+  employeeCode   String
+  name           String
+  licenseNumber  String
+  licenseExpiry  DateTime
+  phone          String?
+  status         DriverStatus        @default(ACTIVE)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  assignments    VehicleAssignment[]
+  trips          Trip[]
+
+  @@unique([companyId, employeeCode])
+  @@unique([companyId, licenseNumber])
+  @@index([companyId])
+  @@index([status])
+  @@index([licenseExpiry])
+}
+
+model VehicleAssignment {
+  id           String    @id @default(uuid())
+  companyId    String
+  company      Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  vehicleId    String
+  vehicle      Vehicle   @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  driverId     String
+  driver       Driver    @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  assignedAt   DateTime  @default(now())
+  unassignedAt DateTime?
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([companyId])
+  @@index([vehicleId])
+  @@index([driverId])
+  @@index([isActive])
+}
+
+enum TripStatus {
+  PLANNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model Trip {
+  id                   String     @id @default(uuid())
+  companyId            String
+  company              Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  vehicleId            String
+  vehicle              Vehicle    @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  driverId             String
+  driver               Driver     @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  
+  tripNumber           String
+
+  originName           String
+  originLatitude       Float
+  originLongitude      Float
+
+  destinationName      String
+  destinationLatitude  Float
+  destinationLongitude Float
+
+  scheduledStartAt     DateTime
+  scheduledEndAt       DateTime?
+
+  actualStartAt        DateTime?
+  actualEndAt          DateTime?
+
+  odometerStart        Float
+  odometerEnd          Float?
+
+  distanceKm           Float?
+
+  status               TripStatus @default(PLANNED)
+
+  notes                String?    @db.Text
+
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+
+  telemetry            Telemetry[]
+
+  @@unique([companyId, tripNumber])
+  @@index([companyId])
+  @@index([vehicleId])
+  @@index([driverId])
+  @@index([status])
+  @@index([scheduledStartAt])
+  @@index([actualStartAt])
+}
+
+enum EngineStatus {
+  ON
+  OFF
+  IDLE
+  UNKNOWN
+}
+
+model Telemetry {
+  id           String       @id @default(uuid())
+  companyId    String
+  company      Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  vehicleId    String
+  vehicle      Vehicle      @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  tripId       String?
+  trip         Trip?        @relation(fields: [tripId], references: [id], onDelete: SetNull)
+
+  timestamp    DateTime
+
+  latitude     Float
+  longitude    Float
+  speedKph     Float
+  heading      Float
+
+  fuelLevel    Float
+  engineStatus EngineStatus @default(UNKNOWN)
+
+  odometer     Float
+
+  createdAt    DateTime     @default(now())
+
+  @@index([companyId, vehicleId, timestamp])
+  @@index([companyId, tripId, timestamp])
+  @@index([companyId, timestamp])
+}
+
+enum MaintenanceServiceType {
+  OIL_CHANGE
+  BRAKE_SERVICE
+  TIRE_SERVICE
+  BATTERY
+  ENGINE_SERVICE
+  GENERAL_SERVICE
+  INSPECTION
+  OTHER
+}
+
+enum MaintenanceTriggerType {
+  TIME
+  ODOMETER
+  TIME_OR_ODOMETER
+}
+
+enum MaintenanceStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum AlertType {
+  MAINTENANCE_DUE
+  MAINTENANCE_OVERDUE
+  GEOFENCE_BREACH
+  SPEEDING
+  OTHER
+}
+
+enum AlertSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+enum AlertStatus {
+  OPEN
+  ACKNOWLEDGED
+  RESOLVED
+}
+
+model MaintenanceSchedule {
+  id                  String                 @id @default(uuid())
+  companyId           String
+  company             Company                @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  vehicleId           String
+  vehicle             Vehicle                @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  name                String
+  description         String?                @db.Text
+  serviceType         MaintenanceServiceType
+  triggerType         MaintenanceTriggerType @default(TIME_OR_ODOMETER)
+  intervalKm          Float?
+  intervalDays        Int?
+  lastServiceAt       DateTime?
+  lastServiceOdometer Float?
+  nextDueAt           DateTime?
+  nextDueOdometer     Float?
+  isActive            Boolean                @default(true)
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
+
+  records             MaintenanceRecord[]
+  alerts              Alert[]
+
+  @@index([companyId])
+  @@index([vehicleId])
+  @@index([isActive])
+  @@index([nextDueAt])
+  @@index([nextDueOdometer])
+}
+
+model MaintenanceRecord {
+  id                String                 @id @default(uuid())
+  companyId         String
+  company           Company                @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  vehicleId         String
+  vehicle           Vehicle                @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  scheduleId        String?
+  schedule          MaintenanceSchedule?   @relation(fields: [scheduleId], references: [id], onDelete: SetNull)
+  serviceType       MaintenanceServiceType
+  description       String?                @db.Text
+  status            MaintenanceStatus      @default(SCHEDULED)
+  startedAt         DateTime?
+  completedAt       DateTime?
+  odometerAtService Float?
+  cost              Decimal?               @db.Decimal(10, 2)
+  vendor            String?
+  notes             String?                @db.Text
+  createdBy         String?
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+
+  @@index([companyId])
+  @@index([vehicleId])
+  @@index([scheduleId])
+  @@index([status])
+  @@index([completedAt])
+}
+
+model Alert {
+  id                    String               @id @default(uuid())
+  companyId             String
+  company               Company              @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  vehicleId             String?
+  vehicle               Vehicle?             @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  maintenanceScheduleId String?
+  maintenanceSchedule   MaintenanceSchedule? @relation(fields: [maintenanceScheduleId], references: [id], onDelete: SetNull)
+  type                  AlertType
+  severity              AlertSeverity
+  title                 String
+  message               String               @db.Text
+  status                AlertStatus          @default(OPEN)
+  metadata              Json?
+  acknowledgedAt        DateTime?
+  acknowledgedBy        String?
+  resolvedAt            DateTime?
+  resolvedBy            String?
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+
+  @@index([companyId])
+  @@index([vehicleId])
+  @@index([maintenanceScheduleId])
+  @@index([status])
+  @@index([type])
+  @@index([severity])
+  @@index([createdAt])
+}
+
+enum GeofenceType {
+  POLYGON
+  CIRCLE
+}
+
+enum GeofenceRule {
+  NO_ENTRY
+  NO_EXIT
+  SPEED_LIMIT
+}
+
+model Geofence {
+  id           String         @id @default(uuid())
+  companyId    String
+  company      Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name         String
+  description  String?        @db.Text
+  type         GeofenceType   @default(POLYGON)
+  rule         GeofenceRule   @default(NO_ENTRY)
+  coordinates  Json
+  radiusMeters Float?
+  speedLimitKph Float?
+  color        String         @default("#EF4444")
+  isActive     Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  breaches     GeofenceBreach[]
+
+  @@index([companyId])
+  @@index([isActive])
+}
+
+model GeofenceBreach {
+  id         String    @id @default(uuid())
+  companyId  String
+  company    Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  geofenceId String
+  geofence   Geofence  @relation(fields: [geofenceId], references: [id], onDelete: Cascade)
+  vehicleId  String
+  vehicle    Vehicle   @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  breachType String
+  latitude   Float
+  longitude  Float
+  speedKph   Float?
+  resolved   Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+
+  @@index([companyId])
+  @@index([geofenceId])
+  @@index([vehicleId])
+  @@index([createdAt])
+}
+
+
