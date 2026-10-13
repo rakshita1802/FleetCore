@@ -13,9 +13,32 @@
 
 ## 📌 Project Abstract
 
-Modern commercial transportation and logistics operations face significant challenges: fragmented telematics systems, delayed geospatial tracking, undetected geofence boundary intrusions, high asset depreciation from irregular servicing, and inefficient dispatching. **FleetCore** is an end-to-end, enterprise-grade **IoT Fleet Management & Real-Time Operational Intelligence Platform** engineered to solve these challenges.
+### 1. Executive Summary
+Modern commercial transportation and logistics operations face significant challenges: fragmented telematics systems, delayed geospatial tracking, undetected geofence boundary intrusions, high asset depreciation from irregular servicing, and inefficient dispatching. **FleetCore** is an end-to-end, enterprise-grade **IoT Fleet Management & Real-Time Operational Intelligence Platform** engineered to solve these challenges through sub-second event streaming, computational geometry, and proactive maintenance automation.
 
-Built on an event-driven microservices architecture, FleetCore ingests, enriches, and visualizes high-frequency vehicle telemetry packets (GPS coordinates, CAN bus ignition, compass bearing, instantaneous velocity, fuel levels, and odometer progression) with sub-second latency. The system features a built-in **Autonomous Live GPS Route Simulator** that models realistic vehicle movement across real Coimbatore metropolitan road corridors, a **Ray-Casting Polygon Geofence Engine** capable of detecting unauthorized intrusions and speed violations in real time, an **Automated Preventive Maintenance Lifecycle Scheduler**, and **Role-Based Access Control (RBAC)** across multi-tenant fleet operations.
+### 2. Problem Statement
+Commercial fleet operators across logistics, transit, and delivery sectors encounter several critical technical and operational bottlenecks:
+* **High Ingestion Latency & Stale Geospatial Tracking**: Traditional database polling systems suffer from high write lock contention and 30–60 second latency, leaving dispatchers blind to instantaneous vehicle velocity, compass bearing, and micro-movements.
+* **Unmonitored Perimeter Intrusions & Geofence Breaches**: Fleet assets frequently enter restricted high-security corridors (e.g., airport cargo zones) or depart designated operational territories without immediate automated detection or alerts.
+* **Reactive Maintenance & Premature Asset Depreciation**: Servicing is conventionally logged on spreadsheets after mechanical failures occur. Lacking real-time odometer accumulation tracking causes overdue oil changes, brake wear, and costly roadside breakdowns.
+* **Fragmented Telematics & Multi-Tenant Security Gaps**: Organizations lack unified platforms with granular Role-Based Access Control (RBAC), resulting in data leakage between company tenants and unvetted driver assignments.
+* **Testing & Simulation Constraints**: Real-world telematics algorithms cannot be safely validated without deploying physical OBD-II hardware across hundreds of vehicles simultaneously.
+
+### 3. Proposed Solution
+**FleetCore** addresses these challenges via a high-performance, decoupled event-driven architecture:
+* **Real-Time Telemetry Pipeline**: Uses **Redis 7** in-memory atomic state caching (`updateStateIfNewer`) combined with **Socket.IO** rooms to broadcast telemetry updates to dispatchers with sub-second latency (<200ms) without overwhelming relational databases.
+* **Ray-Casting Polygon Geofencing**: Employs the Jordan Curve Theorem (crossings counter) to test vehicle coordinates against custom multi-vertex polygons in real time, detecting intrusions (`NO_ENTRY`), boundary escapes (`NO_EXIT`), and zone speed violations with automated cooldown protection.
+* **Autonomous Live GPS Route Simulator**: A realistic simulation engine driving vehicles across actual Coimbatore road corridors (Avinashi Rd, IT corridor, Airport Cargo, Trichy Rd) with real-time trigonometric compass bearing calculation (`calculateHeading`) and speed jitter.
+* **Automated Preventive Maintenance Engine**: Evaluates mileage and calendar triggers, auto-flags overdue vehicles, and raises prioritized operational alerts.
+* **Enterprise Multi-Tenant Security**: Enforces 4-tier RBAC (`ADMIN`, `FLEET_MANAGER`, `DRIVER`, `VIEWER`) backed by short-lived JWTs, secure HTTP-only refresh tokens, and immutable audit logs.
+
+### 4. Solution Objectives
+* **Sub-Second Telemetry Streaming**: Ingest and broadcast vehicle coordinates, speed, compass heading, and fuel level with end-to-end latency below 250ms.
+* **Continuous Geospatial Vector Radar**: Render moving vehicle markers with directional heading pointers on an interactive Leaflet dark map with zero page refreshes.
+* **Automated Perimeter Enforcement**: Enable dispatchers to visually draw custom polygon geofences and receive immediate audio-visual breach alerts upon violation.
+* **Proactive Maintenance Scheduling**: Automatically calculate and alert on distance-based (km) and time-based (days) service due dates to reduce fleet downtime.
+* **Turnkey Autonomous Simulation**: Provide a multi-corridor route simulator with variable speed multipliers (1x, 2x, 5x) for testing and demonstration.
+* **Enterprise-Grade Multi-Tenancy**: Ensure 100% data isolation between organization tenants with audited access control.
 
 ---
 
