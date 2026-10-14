@@ -40,6 +40,8 @@ import AdminUsers from './pages/AdminUsers';
 import AuditLogs from './pages/AuditLogs';
 import SystemHealth from './pages/SystemHealth';
 import GeofenceManagement from './pages/GeofenceManagement';
+import CreateVehicle from './pages/CreateVehicle';
+import CreateDriver from './pages/CreateDriver';
 
 const Layout = ({ children }) => {
   const { user, logout } = useAuth();
@@ -273,11 +275,11 @@ function AppRoutes() {
               <Route path="/dashboard" element={<FleetDashboard />} />
               <Route path="/geofences" element={<ProtectedRoute allowedRoles={adminManagerViewer}><GeofenceManagement /></ProtectedRoute>} />
               <Route path="/vehicles" element={<ProtectedRoute allowedRoles={adminManagerViewer}><Vehicles /></ProtectedRoute>} />
-              <Route path="/vehicles/new" element={<ProtectedRoute allowedRoles={adminManager}><Placeholder title="Add Vehicle Form" /></ProtectedRoute>} />
+              <Route path="/vehicles/new" element={<ProtectedRoute allowedRoles={adminManager}><CreateVehicle /></ProtectedRoute>} />
               <Route path="/vehicles/:id" element={<ProtectedRoute allowedRoles={adminManagerViewer}><Placeholder title="Vehicle Details" /></ProtectedRoute>} />
               <Route path="/vehicles/:id/edit" element={<ProtectedRoute allowedRoles={adminManager}><Placeholder title="Edit Vehicle Form" /></ProtectedRoute>} />
               <Route path="/drivers" element={<ProtectedRoute allowedRoles={adminManagerViewer}><Drivers /></ProtectedRoute>} />
-              <Route path="/drivers/new" element={<ProtectedRoute allowedRoles={adminManager}><Placeholder title="Add Driver Form" /></ProtectedRoute>} />
+              <Route path="/drivers/new" element={<ProtectedRoute allowedRoles={adminManager}><CreateDriver /></ProtectedRoute>} />
               <Route path="/drivers/:id" element={<ProtectedRoute allowedRoles={adminManagerViewer}><Placeholder title="Driver Details" /></ProtectedRoute>} />
               <Route path="/drivers/:id/edit" element={<ProtectedRoute allowedRoles={adminManager}><Placeholder title="Edit Driver Form" /></ProtectedRoute>} />
               <Route path="/assignments" element={<ProtectedRoute allowedRoles={adminManagerViewer}><Assignments /></ProtectedRoute>} />
