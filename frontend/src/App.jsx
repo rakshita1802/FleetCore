@@ -18,7 +18,8 @@ import {
   Radio, 
   Signal, 
   Sparkles,
-  ChevronRight
+  ChevronRight,
+  Leaf
 } from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -33,6 +34,7 @@ import CreateTrip from './pages/CreateTrip';
 import Telemetry from './pages/Telemetry';
 import FleetDashboard from './pages/FleetDashboard';
 import AnalyticsDashboard from './pages/AnalyticsDashboard';
+import GreenFleetDashboard from './pages/GreenFleetDashboard';
 import Maintenance from './pages/Maintenance';
 import Reports from './pages/Reports';
 import AdminDashboard from './pages/AdminDashboard';
@@ -150,6 +152,7 @@ const Layout = ({ children }) => {
                     Intelligence & Reports
                   </div>
                   <div className="space-y-1">
+                    {navItem('/sustainability', Leaf, 'Green Fleet (Eco)', 'ECO')}
                     {navItem('/analytics', BarChart3, 'Fleet Analytics')}
                     {navItem('/reports', FileText, 'Export Reports')}
                   </div>
@@ -289,6 +292,7 @@ function AppRoutes() {
               <Route path="/telemetry" element={<Telemetry />} />
               <Route path="/maintenance" element={<ProtectedRoute allowedRoles={adminManagerViewer}><Maintenance /></ProtectedRoute>} />
               <Route path="/analytics" element={<ProtectedRoute allowedRoles={adminManagerViewer}><AnalyticsDashboard /></ProtectedRoute>} />
+              <Route path="/sustainability" element={<ProtectedRoute allowedRoles={adminManagerViewer}><GreenFleetDashboard /></ProtectedRoute>} />
               <Route path="/alerts" element={<ProtectedRoute allowedRoles={adminManagerViewer}><Maintenance /></ProtectedRoute>} />
               <Route path="/reports" element={<ProtectedRoute allowedRoles={adminManagerViewer}><Reports /></ProtectedRoute>} />
               <Route path="/admin" element={<ProtectedRoute allowedRoles={adminManager}><AdminDashboard /></ProtectedRoute>} />

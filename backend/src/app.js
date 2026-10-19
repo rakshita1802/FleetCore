@@ -98,6 +98,7 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/audit', auditRoutes);
 app.use('/api/simulator', require('./routes/simulator'));
 app.use('/api/geofences', require('./routes/geofences'));
+app.use('/api/sustainability', require('./routes/sustainability'));
 
 // Error Handling
 app.use(errorHandler);

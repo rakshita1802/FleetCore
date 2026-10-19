@@ -157,5 +157,11 @@ export const geofencesApi = {
   resolveBreach: (id) => api.post(`/geofences/breaches/${id}/resolve`)
 };
 
+export const sustainabilityApi = {
+  getMetrics: (params) => api.get('/sustainability/metrics', { params }),
+  compareVehicles: (vehicleIdA, vehicleIdB) => api.get('/sustainability/compare', { params: { vehicleIdA, vehicleIdB } }),
+  clearCache: () => api.post('/sustainability/cache/clear')
+};
+
 export default api;
 
