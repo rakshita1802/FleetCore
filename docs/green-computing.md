@@ -1,10 +1,5 @@
 # Green Computing for Sustainable Fleet Management
 
-**Project Name:** FleetCore Pro — Green Fleet & Sustainable Computing Subsystem  
-**Course / Discipline:** Green Computing / Cloud & Fleet Engineering  
-**Version:** 1.0.0 (Production Architecture)  
-**Status:** Live & Implemented  
-
 ---
 
 > **Methodological Disclosure & Compliance Notice:**  

@@ -1,11 +1,5 @@
 # Green Computing for Sustainable Fleet Management
 
-**Project Title:** Green Computing for Sustainable Fleet Management  
-**Platform:** FleetCore Enterprise IoT Fleet Telematics  
-**Author / Team:** FleetCore Sustainability Engineering  
-**Version:** 1.0.0 (Production Release)  
-**Date:** October 2026  
-
 ---
 
 > **Methodological Note & Data Integrity Disclosure:**  
